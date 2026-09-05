@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#14151F">
 <title>F_F's Honeymoon</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap');
 
@@ -68,11 +69,22 @@
     border-bottom: 1px solid var(--blue);
   }
 
-  .subline {
+  .trip-subtitle-input {
     font-size: 13px;
     color: var(--muted);
     margin: 6px 0 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 4px 0;
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+    border-bottom: 1px solid transparent;
   }
+  .trip-subtitle-input:focus {
+    border-bottom: 1px solid var(--blue);
+  }
+  .trip-subtitle-input::placeholder { color: var(--muted); opacity: 0.7; }
 
   .category {
     background: var(--card);
@@ -120,13 +132,20 @@
 
   .item-row {
     display: grid;
-    grid-template-columns: 1fr 84px 30px;
-    gap: 6px;
-    align-items: start;
+    grid-template-columns: 1fr 92px 28px;
+    gap: 10px;
+    align-items: center;
     padding: 12px 4px;
     border-bottom: 1px solid var(--line);
   }
   .item-row:last-child { border-bottom: none; }
+
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type=number] { -moz-appearance: textfield; }
 
   .item-name {
     border: none;
@@ -157,13 +176,14 @@
   .item-cost {
     border: none;
     background: transparent;
-    font-size: 15px;
+    font-size: 16px;
     text-align: right;
     color: var(--ink);
     padding: 4px 0;
     outline: none;
     width: 100%;
     font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
   }
 
   .item-remove {
@@ -173,7 +193,7 @@
     font-size: 18px;
     cursor: pointer;
     padding: 6px;
-    align-self: center;
+    justify-self: center;
   }
 
   .add-item-btn {
@@ -193,11 +213,20 @@
   .cat-subtotal {
     display: flex;
     justify-content: space-between;
-    padding: 12px 16px;
+    align-items: baseline;
+    padding: 13px 16px;
     background: var(--blue-tint-soft);
-    font-size: 14px;
+    font-size: 17px;
     color: var(--blue);
+    font-weight: 600;
+  }
+  .cat-subtotal span:first-child {
+    font-size: 13px;
     font-weight: 500;
+    color: var(--muted);
+  }
+  .cat-subtotal span:last-child {
+    font-variant-numeric: tabular-nums;
   }
 
   .add-category-btn {
@@ -255,9 +284,133 @@
 
   @media (max-width: 420px) {
     .trip-name-input { font-size: 24px; }
-    .item-row { grid-template-columns: 1fr 74px 26px; }
+    .item-row { grid-template-columns: 1fr 80px 24px; gap: 8px; }
     .total-value { font-size: 22px; }
+    .cat-subtotal { font-size: 16px; }
   }
+
+  .print-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--blue);
+    color: var(--blue);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    padding: 13px;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+  .print-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 26px 22px;
+    max-width: 300px;
+    width: 100%;
+    text-align: center;
+  }
+  .modal-text {
+    font-family: 'Fraunces', serif;
+    font-size: 19px;
+    font-weight: 500;
+    margin: 0 0 20px;
+    color: var(--ink);
+  }
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+  }
+  .modal-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+  .modal-btn.back {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--line);
+  }
+  .modal-btn.delete {
+    background: var(--pink-border);
+    color: #fff;
+    border: none;
+  }
+
+  @media print {
+    body { background: #fff !important; color: #111 !important; }
+    .print-btn, .add-item-btn, .add-category-btn, .item-remove, .cat-remove, .status, .modal-overlay {
+      display: none !important;
+    }
+    .wrap { padding: 0; max-width: 100%; }
+    .eyebrow { color: #555 !important; }
+    .trip-name-input, .cat-name-input, .item-name, .item-cost, .trip-subtitle-input, .item-note {
+      color: #111 !important;
+    }
+    .category {
+      background: #fff !important;
+      border: 1px solid #ccc !important;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .category-head { background: #eee !important; }
+    .cat-subtotal { background: #f5f5f5 !important; color: #111 !important; }
+    .cat-subtotal span:first-child { color: #555 !important; }
+    .total-banner { background: #fff !important; border: 1px solid #999 !important; }
+    .total-label, .total-value { color: #111 !important; }
+    .item-row { border-bottom: 1px solid #ddd !important; }
+  }
+
+  body.pdf-export { background: #fff !important; color: #111 !important; }
+  body.pdf-export .print-btn,
+  body.pdf-export .add-item-btn,
+  body.pdf-export .add-category-btn,
+  body.pdf-export .item-remove,
+  body.pdf-export .cat-remove,
+  body.pdf-export .status {
+    display: none !important;
+  }
+  body.pdf-export .eyebrow { color: #555 !important; }
+  body.pdf-export .trip-name-input,
+  body.pdf-export .cat-name-input,
+  body.pdf-export .item-name,
+  body.pdf-export .item-cost,
+  body.pdf-export .trip-subtitle-input,
+  body.pdf-export .item-note {
+    color: #111 !important;
+  }
+  body.pdf-export .category {
+    background: #fff !important;
+    border: 1px solid #ccc !important;
+  }
+  body.pdf-export .category-head { background: #eee !important; }
+  body.pdf-export .cat-subtotal { background: #f5f5f5 !important; color: #111 !important; }
+  body.pdf-export .cat-subtotal span:first-child { color: #555 !important; }
+  body.pdf-export .total-banner { background: #fff !important; border: 1px solid #999 !important; }
+  body.pdf-export .total-label, body.pdf-export .total-value { color: #111 !important; }
+  body.pdf-export .item-row { border-bottom: 1px solid #ddd !important; }
 </style>
 </head>
 <body>
@@ -265,8 +418,13 @@
   <header class="hero">
     <p class="eyebrow">Faisal_Faria_Forever</p>
     <input class="trip-name-input" id="tripName" value="Our Honeymoon in Cox's Bazar" />
-    <p class="subline">Tap any field to edit. Everything saves automatically.</p>
+    <input class="trip-subtitle-input" id="tripSubtitle" placeholder="Add trip dates or a short note (optional)" />
   </header>
+
+  <button class="print-btn" id="printBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+    Print / Save as PDF
+  </button>
 
   <div id="categories"></div>
 
@@ -280,12 +438,23 @@
   <p class="status" id="statusMsg"></p>
 </div>
 
+<div class="modal-overlay" id="confirmOverlay">
+  <div class="modal-card">
+    <p class="modal-text">Are you sure?</p>
+    <div class="modal-actions">
+      <button class="modal-btn back" id="modalBack">Back</button>
+      <button class="modal-btn delete" id="modalDelete">Delete</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const STORAGE_KEY = 'trip-budget-data';
 const CURRENCY = 'TK';
 
 const defaultData = {
   tripName: "Our Honeymoon in Cox's Bazar",
+  subtitle: "24-27 Sep, 2026",
   categories: [
     {
       id: 'cat1',
@@ -316,6 +485,7 @@ const defaultData = {
 
 let data = null;
 let saveTimer = null;
+let pendingDeleteAction = null;
 
 function uid() {
   return 'x' + Math.random().toString(36).slice(2, 9);
@@ -340,13 +510,30 @@ async function storageSet(key, value) {
   return true;
 }
 
+function normalizeData(raw) {
+  return {
+    tripName: raw.tripName || defaultData.tripName,
+    subtitle: raw.subtitle || '',
+    categories: (raw.categories || []).map(cat => ({
+      id: cat.id || uid(),
+      name: cat.name || '',
+      items: (cat.items || []).map(it => ({
+        id: it.id || uid(),
+        name: it.name || '',
+        note: it.note || '',
+        cost: Number(it.cost) || 0
+      }))
+    }))
+  };
+}
+
 async function loadData() {
   try {
     const result = await storageGet(STORAGE_KEY);
     const parsed = JSON.parse(result.value);
-    data = { tripName: parsed.tripName, categories: parsed.categories };
+    data = normalizeData(parsed);
   } catch (e) {
-    data = JSON.parse(JSON.stringify(defaultData));
+    data = normalizeData(defaultData);
   }
   render();
 }
@@ -368,7 +555,7 @@ function scheduleSave() {
 
 function money(n) {
   const rounded = Math.round((n + Number.EPSILON) * 100) / 100;
-  return rounded.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  return rounded.toLocaleString('en-US', { maximumFractionDigits: 2 });
 }
 
 function categoryTotal(cat) {
@@ -381,6 +568,7 @@ function grandTotalValue() {
 
 function render() {
   document.getElementById('tripName').value = data.tripName;
+  document.getElementById('tripSubtitle').value = data.subtitle || '';
 
   const container = document.getElementById('categories');
   container.innerHTML = '';
@@ -446,6 +634,16 @@ function escapeAttr(str) {
   return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 }
 
+function showConfirm(action) {
+  pendingDeleteAction = action;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+
+function hideConfirm() {
+  pendingDeleteAction = null;
+  document.getElementById('confirmOverlay').classList.remove('open');
+}
+
 function attachListeners() {
   document.querySelectorAll('.cat-name-input').forEach(el => {
     el.oninput = () => {
@@ -456,9 +654,11 @@ function attachListeners() {
 
   document.querySelectorAll('.cat-remove').forEach(el => {
     el.onclick = () => {
-      data.categories = data.categories.filter(c => c.id !== el.dataset.removeCat);
-      scheduleSave();
-      render();
+      showConfirm(() => {
+        data.categories = data.categories.filter(c => c.id !== el.dataset.removeCat);
+        scheduleSave();
+        render();
+      });
     };
   });
 
@@ -475,13 +675,19 @@ function attachListeners() {
     };
   });
 
+  document.querySelectorAll('.item-cost').forEach(el => {
+    el.onfocus = () => el.select();
+  });
+
   document.querySelectorAll('[data-remove-item]').forEach(el => {
     el.onclick = () => {
-      const [catId, itemId] = el.dataset.removeItem.split('|');
-      const cat = data.categories.find(c => c.id === catId);
-      if (cat) cat.items = cat.items.filter(i => i.id !== itemId);
-      scheduleSave();
-      render();
+      showConfirm(() => {
+        const [catId, itemId] = el.dataset.removeItem.split('|');
+        const cat = data.categories.find(c => c.id === catId);
+        if (cat) cat.items = cat.items.filter(i => i.id !== itemId);
+        scheduleSave();
+        render();
+      });
     };
   });
 
@@ -512,10 +718,63 @@ document.getElementById('tripName').oninput = (e) => {
   scheduleSave();
 };
 
+document.getElementById('tripSubtitle').oninput = (e) => {
+  data.subtitle = e.target.value;
+  scheduleSave();
+};
+
 document.getElementById('addCategoryBtn').onclick = () => {
   data.categories.push({ id: uid(), name: 'New category', items: [] });
   scheduleSave();
   render();
+  const newInputs = document.querySelectorAll('.cat-name-input');
+  if (newInputs.length) {
+    const last = newInputs[newInputs.length - 1];
+    last.focus();
+    last.select();
+  }
+};
+
+document.getElementById('modalBack').onclick = hideConfirm;
+document.getElementById('modalDelete').onclick = () => {
+  if (pendingDeleteAction) pendingDeleteAction();
+  hideConfirm();
+};
+document.getElementById('confirmOverlay').onclick = (e) => {
+  if (e.target.id === 'confirmOverlay') hideConfirm();
+};
+
+document.getElementById('printBtn').onclick = () => {
+  const btn = document.getElementById('printBtn');
+  const originalLabel = btn.innerHTML;
+  const filename = (data.tripName || 'Trip Budget').trim().replace(/[^\w\- ]/g, '') + '.pdf';
+
+  if (typeof html2pdf === 'undefined') {
+    window.print();
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Generating PDF…';
+  document.body.classList.add('pdf-export');
+
+  html2pdf()
+    .set({
+      margin: 10,
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, backgroundColor: '#ffffff' },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css'] }
+    })
+    .from(document.querySelector('.wrap'))
+    .save()
+    .catch(() => { window.print(); })
+    .finally(() => {
+      document.body.classList.remove('pdf-export');
+      btn.disabled = false;
+      btn.innerHTML = originalLabel;
+    });
 };
 
 loadData();

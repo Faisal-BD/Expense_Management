@@ -35,6 +35,159 @@
     font-size: 16px;
   }
 
+  .app {
+    display: flex;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
+
+  /* ---------- Sidebar ---------- */
+
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--card);
+    border-right: 1px solid var(--line);
+    min-height: 100vh;
+    padding: 20px 14px;
+    position: sticky;
+    top: 0;
+  }
+
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .sidebar-title {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .sidebar-close {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+
+  .plan-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .plan-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 10px;
+    padding: 2px 4px;
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+  .plan-item.active {
+    background: var(--blue-tint-soft);
+    border-color: var(--blue);
+  }
+  .plan-name-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    padding: 10px 6px;
+    cursor: pointer;
+    width: 100%;
+  }
+  .plan-item.active .plan-name-input {
+    color: var(--blue);
+    font-weight: 600;
+    cursor: text;
+  }
+  .plan-remove {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 8px;
+    flex-shrink: 0;
+  }
+
+  .new-plan-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed var(--line);
+    color: var(--blue);
+    border-radius: 10px;
+    padding: 11px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .sidebar-toggle {
+    display: none;
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 1300;
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .sidebar-toggle svg { width: 18px; height: 18px; }
+
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1150;
+  }
+  .sidebar-backdrop.open { display: block; }
+
+  .main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  @media (max-width: 768px) {
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -260px;
+      height: 100vh;
+      width: 240px;
+      z-index: 1200;
+      transition: left 0.25s ease;
+      box-shadow: 2px 0 24px rgba(0,0,0,0.45);
+    }
+    .sidebar.open { left: 0; }
+    .sidebar-close { display: block; }
+    .sidebar-toggle { display: flex; }
+    .main { padding-top: 52px; }
+  }
+
+  /* ---------- Main content (unchanged from before) ---------- */
+
   .wrap {
     max-width: 640px;
     margin: 0 auto;
@@ -308,6 +461,8 @@
   }
   .print-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
 
+  /* ---------- Confirm modal ---------- */
+
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -315,7 +470,7 @@
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 1400;
     padding: 24px;
   }
   .modal-overlay.open { display: flex; }
@@ -361,6 +516,8 @@
 
   @media print {
     body { background: #fff !important; color: #111 !important; }
+    .sidebar, .sidebar-toggle, .sidebar-backdrop { display: none !important; }
+    .main { padding-top: 0 !important; }
     .print-btn, .add-item-btn, .add-category-btn, .item-remove, .cat-remove, .status, .modal-overlay {
       display: none !important;
     }
@@ -414,28 +571,49 @@
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="hero">
-    <p class="eyebrow">Faisal_Faria_Forever</p>
-    <input class="trip-name-input" id="tripName" value="Our Honeymoon in Cox's Bazar" />
-    <input class="trip-subtitle-input" id="tripSubtitle" placeholder="Add trip dates or a short note (optional)" />
-  </header>
+<div class="app">
 
-  <button class="print-btn" id="printBtn">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-    Print / Save as PDF
+  <button class="sidebar-toggle" id="sidebarToggle" aria-label="Open plans">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
   </button>
 
-  <div id="categories"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">My Plans</span>
+      <button class="sidebar-close" id="sidebarClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="plan-list" id="planList"></div>
+    <button class="new-plan-btn" id="newPlanBtn">+ New plan</button>
+  </aside>
 
-  <button class="add-category-btn" id="addCategoryBtn">+ Add category</button>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-  <div class="total-banner">
-    <span class="total-label">Total cost</span>
-    <span class="total-value" id="grandTotal">TK 0</span>
-  </div>
+  <main class="main">
+    <div class="wrap">
+      <header class="hero">
+        <p class="eyebrow">Faisal_Faria_Forever</p>
+        <input class="trip-name-input" id="tripName" value="Our Honeymoon in Cox's Bazar" />
+        <input class="trip-subtitle-input" id="tripSubtitle" placeholder="Add trip dates or a short note (optional)" />
+      </header>
 
-  <p class="status" id="statusMsg"></p>
+      <button class="print-btn" id="printBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        Print / Save as PDF
+      </button>
+
+      <div id="categories"></div>
+
+      <button class="add-category-btn" id="addCategoryBtn">+ Add category</button>
+
+      <div class="total-banner">
+        <span class="total-label">Total cost</span>
+        <span class="total-value" id="grandTotal">TK 0</span>
+      </div>
+
+      <p class="status" id="statusMsg"></p>
+    </div>
+  </main>
+
 </div>
 
 <div class="modal-overlay" id="confirmOverlay">
@@ -452,7 +630,7 @@
 const STORAGE_KEY = 'trip-budget-data';
 const CURRENCY = 'TK';
 
-const defaultData = {
+const defaultPlanTemplate = {
   tripName: "Our Honeymoon in Cox's Bazar",
   subtitle: "24-27 Sep, 2026",
   categories: [
@@ -483,7 +661,8 @@ const defaultData = {
   ]
 };
 
-let data = null;
+let root = null;   // { activePlanId, plans: [...] }
+let data = null;   // reference to the currently active plan (root.plans element)
 let saveTimer = null;
 let pendingDeleteAction = null;
 
@@ -510,11 +689,12 @@ async function storageSet(key, value) {
   return true;
 }
 
-function normalizeData(raw) {
+function normalizePlan(raw) {
   return {
-    tripName: raw.tripName || defaultData.tripName,
-    subtitle: raw.subtitle || '',
-    categories: (raw.categories || []).map(cat => ({
+    id: (raw && raw.id) || uid(),
+    tripName: (raw && raw.tripName) || 'New plan',
+    subtitle: (raw && raw.subtitle) || '',
+    categories: ((raw && raw.categories) || []).map(cat => ({
       id: cat.id || uid(),
       name: cat.name || '',
       items: (cat.items || []).map(it => ({
@@ -527,14 +707,37 @@ function normalizeData(raw) {
   };
 }
 
+function normalizeRoot(raw) {
+  if (raw && Array.isArray(raw.plans) && raw.plans.length > 0) {
+    const plans = raw.plans.map(normalizePlan);
+    let activePlanId = raw.activePlanId;
+    if (!plans.find(p => p.id === activePlanId)) activePlanId = plans[0].id;
+    return { activePlanId, plans };
+  }
+  if (raw && Array.isArray(raw.categories)) {
+    // legacy single-plan save from before multi-plan support
+    const legacy = normalizePlan(raw);
+    return { activePlanId: legacy.id, plans: [legacy] };
+  }
+  const fresh = normalizePlan(defaultPlanTemplate);
+  return { activePlanId: fresh.id, plans: [fresh] };
+}
+
+function setActivePlan(id) {
+  root.activePlanId = id;
+  data = root.plans.find(p => p.id === id) || root.plans[0];
+}
+
 async function loadData() {
   try {
     const result = await storageGet(STORAGE_KEY);
     const parsed = JSON.parse(result.value);
-    data = normalizeData(parsed);
+    root = normalizeRoot(parsed);
   } catch (e) {
-    data = normalizeData(defaultData);
+    root = normalizeRoot(null);
   }
+  setActivePlan(root.activePlanId);
+  renderSidebar();
   render();
 }
 
@@ -544,7 +747,7 @@ function scheduleSave() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
     try {
-      await storageSet(STORAGE_KEY, JSON.stringify(data));
+      await storageSet(STORAGE_KEY, JSON.stringify(root));
       statusEl.textContent = 'Saved';
       setTimeout(() => { if (statusEl.textContent === 'Saved') statusEl.textContent = ''; }, 1500);
     } catch (e) {
@@ -565,6 +768,91 @@ function categoryTotal(cat) {
 function grandTotalValue() {
   return data.categories.reduce((sum, cat) => sum + categoryTotal(cat), 0);
 }
+
+function escapeAttr(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+/* ---------- Sidebar rendering ---------- */
+
+function renderSidebar() {
+  const list = document.getElementById('planList');
+  list.innerHTML = '';
+
+  root.plans.forEach(plan => {
+    const row = document.createElement('div');
+    row.className = 'plan-item' + (plan.id === root.activePlanId ? ' active' : '');
+    row.dataset.planRow = plan.id;
+
+    const removeBtnHtml = root.plans.length > 1
+      ? `<button class="plan-remove" data-remove-plan="${plan.id}" aria-label="Delete plan">&times;</button>`
+      : '';
+
+    row.innerHTML = `
+      <input class="plan-name-input" data-plan="${plan.id}" value="${escapeAttr(plan.tripName)}" />
+      ${removeBtnHtml}
+    `;
+    list.appendChild(row);
+  });
+
+  attachSidebarListeners();
+}
+
+function attachSidebarListeners() {
+  document.querySelectorAll('.plan-item').forEach(row => {
+    row.onclick = (e) => {
+      if (e.target.closest('.plan-remove')) return;
+      switchPlan(row.dataset.planRow);
+    };
+  });
+
+  document.querySelectorAll('.plan-name-input').forEach(el => {
+    el.oninput = () => {
+      const plan = root.plans.find(p => p.id === el.dataset.plan);
+      if (!plan) return;
+      plan.tripName = el.value;
+      scheduleSave();
+      if (plan.id === root.activePlanId) {
+        document.getElementById('tripName').value = el.value;
+      }
+    };
+  });
+
+  document.querySelectorAll('[data-remove-plan]').forEach(el => {
+    el.onclick = (e) => {
+      e.stopPropagation();
+      const planId = el.dataset.removePlan;
+      showConfirm(() => {
+        const wasActive = planId === root.activePlanId;
+        root.plans = root.plans.filter(p => p.id !== planId);
+        if (root.plans.length === 0) {
+          root.plans.push(normalizePlan({ tripName: 'New plan' }));
+        }
+        if (wasActive) {
+          setActivePlan(root.plans[0].id);
+        }
+        scheduleSave();
+        renderSidebar();
+        render();
+      });
+    };
+  });
+}
+
+function switchPlan(id) {
+  if (id === root.activePlanId) return;
+  setActivePlan(id);
+  renderSidebar();
+  render();
+  closeSidebarOnMobile();
+}
+
+function closeSidebarOnMobile() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarBackdrop').classList.remove('open');
+}
+
+/* ---------- Main plan rendering ---------- */
 
 function render() {
   document.getElementById('tripName').value = data.tripName;
@@ -628,10 +916,6 @@ function render() {
   document.getElementById('grandTotal').textContent = `${CURRENCY} ${money(grandTotalValue())}`;
 
   attachListeners();
-}
-
-function escapeAttr(str) {
-  return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 }
 
 function showConfirm(action) {
@@ -716,6 +1000,8 @@ function updateSubtotalsOnly() {
 document.getElementById('tripName').oninput = (e) => {
   data.tripName = e.target.value;
   scheduleSave();
+  const rowInput = document.querySelector(`.plan-name-input[data-plan="${data.id}"]`);
+  if (rowInput) rowInput.value = e.target.value;
 };
 
 document.getElementById('tripSubtitle').oninput = (e) => {
@@ -734,6 +1020,28 @@ document.getElementById('addCategoryBtn').onclick = () => {
     last.select();
   }
 };
+
+document.getElementById('newPlanBtn').onclick = () => {
+  const newPlan = normalizePlan({ tripName: 'New plan', subtitle: '', categories: [] });
+  root.plans.push(newPlan);
+  setActivePlan(newPlan.id);
+  scheduleSave();
+  renderSidebar();
+  render();
+  closeSidebarOnMobile();
+  setTimeout(() => {
+    const t = document.getElementById('tripName');
+    t.focus();
+    t.select();
+  }, 50);
+};
+
+document.getElementById('sidebarToggle').onclick = () => {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarBackdrop').classList.add('open');
+};
+document.getElementById('sidebarClose').onclick = closeSidebarOnMobile;
+document.getElementById('sidebarBackdrop').onclick = closeSidebarOnMobile;
 
 document.getElementById('modalBack').onclick = hideConfirm;
 document.getElementById('modalDelete').onclick = () => {

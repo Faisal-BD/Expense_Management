@@ -744,7 +744,7 @@ document.getElementById('confirmOverlay').onclick = (e) => {
   if (e.target.id === 'confirmOverlay') hideConfirm();
 };
 
-document.getElementById('printBtn').onclick = () => {
+document.getElementById('printBtn').onclick = async () => {
   const btn = document.getElementById('printBtn');
   const originalLabel = btn.innerHTML;
   const filename = (data.tripName || 'Trip Budget').trim().replace(/[^\w\- ]/g, '') + '.pdf';
@@ -758,6 +758,14 @@ document.getElementById('printBtn').onclick = () => {
   btn.textContent = 'Generating PDF…';
   document.body.classList.add('pdf-export');
 
+  try {
+    if (document.fonts && document.fonts.ready) {
+      await document.fonts.ready;
+    }
+  } catch (e) { /* ignore font-load check failures */ }
+
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
   html2pdf()
     .set({
       margin: 10,
@@ -765,7 +773,7 @@ document.getElementById('printBtn').onclick = () => {
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, backgroundColor: '#ffffff' },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all', 'css'] }
+      pagebreak: { mode: ['css'] }
     })
     .from(document.querySelector('.wrap'))
     .save()
